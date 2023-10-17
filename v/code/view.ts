@@ -396,7 +396,10 @@ export class view {
         //
         //Usint the given identifier get the envelop. In the above cases the
         //label The env should be explicitly marked with a data-field attribute
-        const env = this.get_envelop(df_name);
+        //
+        //TO accomodate initial usage of get value find the element with the given id
+        const env =
+            this.document.getElementById(df_name) ?? this.get_envelop(df_name);
         //
         //Get the io type. Currently only 4 are supported; they are text, text area,
         // radio and select. If no io type is available, we assume this is a simple input
