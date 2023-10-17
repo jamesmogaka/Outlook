@@ -1,4 +1,4 @@
-import { mutall_error } from '../../../schema/v/code/schema.js';
+import { attribute, mutall_error } from '../../../schema/v/code/schema.js';
 import { io_type } from '../../../schema/v/code/io.js';
 
 //
@@ -100,9 +100,7 @@ export class view {
     public get_input_choices(name: string): Array<string> {
         //
         //Collect the named radio/checked inputs
-        const radios = Array.from(
-            this.document.querySelectorAll(`input[name="${name}"]:checked`)
-        );
+        const radios = Array.from(this.document.querySelectorAll(`input[name="${name}"]:checked`));
         //
         //Map teh selected inputs to thiier values and return the collection
         return radios.map((r) => (<HTMLInputElement>r).value);
@@ -117,15 +115,8 @@ export class view {
         const elem = this.get_element(id);
         //
         //It must be an input  element or textarea.
-        if (
-            !(
-                elem instanceof HTMLInputElement ||
-                elem instanceof HTMLTextAreaElement
-            )
-        )
-            throw new mutall_error(
-                `'${id}' is not an input or textarea element`
-            );
+        if (!(elem instanceof HTMLInputElement || elem instanceof HTMLTextAreaElement))
+            throw new mutall_error(`'${id}' is not an input or textarea element`);
         //
         //The desired value is.
         let value = elem.value === '' ? null : elem.value;
@@ -147,17 +138,13 @@ export class view {
     public get_checked_value(name: string): string | null | Error {
         //
         //Get the radio button that matches the given name and is checked.
-        const radio = this.document.querySelector(
-            `input[name='${name}']:checked`
-        );
+        const radio = this.document.querySelector(`input[name='${name}']:checked`);
         //
         //Do not continue with further checks if there is no checked radio button
         if (radio === null) {
             //
             //Get all the named radio buttons that have a required attribute
-            const buttons = this.document.querySelectorAll(
-                `input[name='${name}'][required]`
-            );
+            const buttons = this.document.querySelectorAll(`input[name='${name}'][required]`);
             //
             //Required is true if there is at least one required button
             return buttons.length > 0 ? new Error(`${name} is required`) : null;
@@ -165,14 +152,11 @@ export class view {
         //
         //Ensure that the radio element is a HTMLInputElement.
         if (!(radio instanceof HTMLInputElement))
-            throw new mutall_error(
-                `The input named '${name}' is not a HTMLInputElement`
-            );
+            throw new mutall_error(`The input named '${name}' is not a HTMLInputElement`);
         //
         //The radio button's value must be set. It is a sign a poorly designed form
         //if not
-        if (radio.value === '')
-            throw new mutall_error(`No value found for input named '${name}'`);
+        if (radio.value === '') throw new mutall_error(`No value found for input named '${name}'`);
         //
         //Return the checked value.
         return radio.value;
@@ -187,9 +171,7 @@ export class view {
         //
         //Ensure that the select is a HTMLSelectElement.
         if (!(select instanceof HTMLSelectElement))
-            throw new mutall_error(
-                `The element identified by '${id}' is not a HTMLSelectElement.`
-            );
+            throw new mutall_error(`The element identified by '${id}' is not a HTMLSelectElement.`);
         //
         //Ensure that the select element value is set.
         if (select.value === '')
@@ -243,10 +225,7 @@ export class view {
                     classes.forEach((c) => element.classList.add(c));
                 } else if (key === 'textContent') {
                     element.textContent = value;
-                } else if (
-                    key.startsWith('on') &&
-                    typeof attributes[key] === 'function'
-                ) {
+                } else if (key.startsWith('on') && typeof attributes[key] === 'function') {
                     element.addEventListener(key.substring(2), value);
                 } else {
                     // <input disable />      { disable: true }
@@ -272,10 +251,7 @@ export class view {
         const element: HTMLElement | null = this.document.getElementById(id);
         //
         //Check the element for a null value
-        if (element === null)
-            throw new mutall_error(
-                `The element identified by #${id} not found`
-            );
+        if (element === null) throw new mutall_error(`The element identified by #${id} not found`);
         //
         //Return (found) the element
         return element;
@@ -286,21 +262,15 @@ export class view {
     query_selector(css: string): HTMLElement {
         //
         //Get the identified element from the current browser context.
-        const elements: Array<Element> = Array.from(
-            this.document!.querySelectorAll(css)
-        );
+        const elements: Array<Element> = Array.from(this.document!.querySelectorAll(css));
         //
         //If there is more than one element, warn the user
         if (elements.length > 1)
-            throw new mutall_error(
-                `There are ${elements.length} elements selected by ${css}`
-            );
+            throw new mutall_error(`There are ${elements.length} elements selected by ${css}`);
         //
         //Check the elements is empty
         if (elements.length === 0)
-            throw new mutall_error(
-                `The element with selector ${css} not found`
-            );
+            throw new mutall_error(`The element with selector ${css} not found`);
         //
         //Return (the only found) the )HML) element
         return <HTMLElement>elements[0];
@@ -398,8 +368,7 @@ export class view {
         //label The env should be explicitly marked with a data-field attribute
         //
         //TO accomodate initial usage of get value find the element with the given id
-        const env =
-            this.document.getElementById(df_name) ?? this.get_envelop(df_name);
+        const env = this.document.getElementById(df_name) ?? this.get_envelop(df_name);
         //
         //Get the io type. Currently only 4 are supported; they are text, text area,
         // radio and select. If no io type is available, we assume this is a simple input
@@ -411,14 +380,59 @@ export class view {
         let raw: string | null = this.get_raw_value(env, io_type);
         //
         //Determine whether the value is required or not
-        const is_required: boolean = Boolean(env.dataset.required);
+        const is_required: boolean = this.is_required(env);
         //
         //If an input is required and it is empty, return the an error
-        if (is_required && raw === null)
-            return new Error(`Input '${df_name}' is required`);
+        if (is_required && raw === null) return new Error(`Input '${df_name}' is required`);
         //
         //Otherwise return the raw value
         return raw;
+    }
+    //
+    //Given a data collection element this procedure is responsible for reading and
+    //determining weather or not the data to be collected is mandatory or optional
+    //returning a boolean value
+    //The infomation is either gotten at the envelop level that is the element that houses the
+    //input element or at the level of the input element.At the envelop level it is provided
+    //via the dataset technology in an attribute data-required whereas in the input element level
+    //The same infomation is provided via the the required attribute of the input element
+    //Bellow are samples to depict the above scenario:-
+    /*
+    At the envelop level :-
+
+    <label data-field="username" data-required="true" data-iotype="text">
+        Username:<input type="text"> 
+    </label>
+
+    At the input level :-
+
+    <label data-field="username">
+        Username:<input type="text" requred> 
+    </label>
+     */
+    private is_required(env: HTMLElement): boolean {
+        //
+        //Get the value of the custom attribute at the envelop level
+        //
+        //If the attribute is present return a true
+        if (env.dataset.required) return true;
+        //
+        //We did not find the custom attribute at the envelop level
+        //Get all the children of the envelop
+        //
+        //filter to get all the children with the required attribute
+        const results: Array<Element> = Array.from(env.children).filter((child) =>
+            Array.from(child.attributes).find((attribute) => attribute.name === 'requrird')
+        );
+        //
+        //Ensure that no more than one element was collected
+        if (results.length > 1)
+            throw new mutall_error(
+                `We expected only one input element but fount ${results.length} check your form design`
+            );
+        //
+        //Return false if no element was gotten and true if one element was retrieved
+        return results.length ? true : false;
     }
     //
     //
@@ -460,9 +474,7 @@ export class view {
         //our example
         //
         //Get the datafield element with the given datafield name
-        const env: HTMLElement | null = this.document.querySelector(
-            `*[data-field = "${df_name}"]`
-        );
+        const env: HTMLElement | null = this.document.querySelector(`*[data-field = "${df_name}"]`);
         //
         //Check to ensure that the element exist
         //If the element exist return the element
@@ -472,18 +484,14 @@ export class view {
         //the input level
         //
         //Get all data collection elements
-        const target: Array<Element> = Array.from(
-            this.document.querySelectorAll('*[data-field]')
-        );
+        const target: Array<Element> = Array.from(this.document.querySelectorAll('*[data-field]'));
         //
         //Within the data collection elements establish the elements with children
         //that have id or name attribute with a value matching the df_name
         const envelop: Array<Element> = target.filter((target) => {
             //
             Array.from(target.children).filter(
-                (child) =>
-                    child.getAttribute('name') ||
-                    child.getAttribute('id') === df_name
+                (child) => child.getAttribute('name') || child.getAttribute('id') === df_name
             );
         });
         //
@@ -562,9 +570,7 @@ export class view {
         //
         //From the children extract the child with a type attribute
         const input: Array<Element> = children.filter((child) =>
-            Array.from(child.attributes).find(
-                (attribute) => attribute.name === 'type'
-            )
+            Array.from(child.attributes).find((attribute) => attribute.name === 'type')
         );
         //
         //Ensure that there was an input element retrived
@@ -616,16 +622,12 @@ export class view {
                         case 'text':
                             return this.get_text_value(env);
                         default:
-                            throw new mutall_error(
-                                `'${type}' is not a valid io-type`
-                            );
+                            throw new mutall_error(`'${type}' is not a valid io-type`);
                     }
                 }
                 //Unknown io type
                 //
-                throw new mutall_error(
-                    `Unable to get the value of '${io_type}' io_type`
-                );
+                throw new mutall_error(`Unable to get the value of '${io_type}' io_type`);
         }
     }
     //
@@ -648,8 +650,7 @@ export class view {
     private get_radio_value(env: HTMLElement): string | null {
         //
         //Collect all the radio buttons in under this envelop
-        const radios: NodeListOf<HTMLElement> =
-            env.querySelectorAll('input[type=radio]');
+        const radios: NodeListOf<HTMLElement> = env.querySelectorAll('input[type=radio]');
         //
         //There must be at least 2
         if (radios.length < 2)
@@ -659,9 +660,7 @@ export class view {
             );
         //
         //Collect all radio buttons that are checked
-        const checkeds: NodeListOf<HTMLElement> = env.querySelectorAll(
-            'input[type=radio]:checked'
-        );
+        const checkeds: NodeListOf<HTMLElement> = env.querySelectorAll('input[type=radio]:checked');
         //
         //Return a null if none of them is checked
         if (checkeds.length === 0) return null;
@@ -691,8 +690,7 @@ export class view {
         const elements: Array<any> = all_elements.filter((e) => 'value' in e);
         //
         //Its a design fault if no element can be found
-        if (elements.length === 0)
-            throw new mutall_error('No element with a value key found', env);
+        if (elements.length === 0) throw new mutall_error('No element with a value key found', env);
         //
         //It is also a form design fault if more than 1 element is found
         if (elements.length > 1)
@@ -705,9 +703,7 @@ export class view {
         //
         //Return null if the input has an empty value, or is explicitly entered
         //as null
-        return ['', 'null', 'undefined'].includes(value.toLowerCase())
-            ? null
-            : value;
+        return ['', 'null', 'undefined'].includes(value.toLowerCase()) ? null : value;
     }
 
     //
@@ -754,8 +750,7 @@ export class view {
             //
             //Respect messages that came before this one
             general.innerHTML = `${general.innerHTML} <br/> ${msg}`;
-        } else if (envelop.id === 'report')
-            envelop.innerHTML = `${envelop.innerHTML} <br/> ${msg}`;
+        } else if (envelop.id === 'report') envelop.innerHTML = `${envelop.innerHTML} <br/> ${msg}`;
         else {
             //The envelop exists. Use specific element for reporting locally
             const local: HTMLElement | null = envelop.querySelector('.error');
@@ -822,8 +817,7 @@ export class page extends view {
         const new_view = <page>view.lookup.get(key);
         //
         //It is an error if the key has no matching view.
-        if (new_view === undefined)
-            throw new mutall_error(`This key ${key} has no view`);
+        if (new_view === undefined) throw new mutall_error(`This key ${key} has no view`);
         //
         //Restore the components of the new view
         new_view.restore_view(key);
@@ -851,8 +845,7 @@ export class page extends view {
         const View = view.lookup.get(key);
         //
         //It's an error if the view has not been cached
-        if (View === undefined)
-            throw new mutall_error(`This key ${key} has no matching view`);
+        if (View === undefined) throw new mutall_error(`This key ${key} has no matching view`);
         //
         //Get the root document element.
         const root = View.document.documentElement;
@@ -955,14 +948,11 @@ export abstract class panel extends view {
         const targets = Array.from(this.document.querySelectorAll(this.css));
         //
         //There must be a target
-        if (targets.length == 0)
-            throw new mutall_error(`No target found with CSS ${this.css}`);
+        if (targets.length == 0) throw new mutall_error(`No target found with CSS ${this.css}`);
         //
         //Multiple targets is a sign of an error
         if (targets.length > 1)
-            throw new mutall_error(
-                `Multiple targets found with CSS ${this.css}`
-            );
+            throw new mutall_error(`Multiple targets found with CSS ${this.css}`);
         //
         //The target must be a html element
         if (!(targets[0] instanceof HTMLElement))
