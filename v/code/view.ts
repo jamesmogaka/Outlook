@@ -548,6 +548,20 @@ export class view {
     //Extract the iotype of the input element or from the actual evneloping tag
     //If provided for at the envelop level read the value of the data-iotype attribute
     //otherwise read the value of the type attribute of the input element
+    //Bellow are examples:-
+    /*
+    Envelop level :-
+        <label data-field data-iotype = 'text'>
+            Username: 
+            <input id='username' maxlength='30' size='30' required>
+        </label>
+
+    Input level:- 
+        <label data-field>
+            Username: 
+            <input id='username' type = 'text' maxlength='30' size='30' required>
+        </label>
+    */
     //
     //????? Other data collection elements other than input elements
     //do not have the type attribute hence making it difficult to know the io type of
