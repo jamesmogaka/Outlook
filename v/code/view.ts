@@ -368,7 +368,7 @@ export class view {
         //label The env should be explicitly marked with a data-field attribute
         //
         //TO accomodate initial usage of get value find the element with the given id
-        const env = this.document.getElementById(df_name) ?? this.get_envelop(df_name);
+        const env:HTMLElement = this.document.getElementById(df_name) ?? this.get_envelop(df_name);
         //
         //Get the io type. Currently only 4 are supported; they are text, text area,
         // radio and select. If no io type is available, we assume this is a simple input
@@ -468,7 +468,7 @@ export class view {
             <input name='username' type = 'text' maxlength='30' size='30' required>
         </label>
     */
-    private get_envelop(df_name: string): HTMLElement {
+    private  get_envelop(df_name: string): HTMLElement {
         //
         //Get the identified enveloping element, e.g. the label element in the
         //our example
@@ -782,6 +782,35 @@ export class view {
         }
         //
         return undefined;
+    }
+    //
+    //A coustom alert to repalce the normal js alert using dialog technology
+    //
+    public static myalert(message:string):void{
+        //
+        //Create a dialog element that is used to server the message
+        const dlg: HTMLDialogElement = document.createElement("dialog");
+        //
+        //Append the message to  the dialog with the assumption that it is html
+        //formated
+        dlg.innerHTML = message;
+        //
+        //Create a cancel button which is responsible for closing the dialog
+        //
+        //Create button
+        const cancel:HTMLButtonElement = document.createElement("button");
+        //
+        //Assign onclick listener
+        cancel.onclick = ()=> dlg.close();
+        //
+        //Append the cancel button to the dialog
+        dlg.appendChild(cancel);
+        //
+        //Append the dialog to the document body 
+        document.appendChild(dlg);
+        //
+        //Finally show the created dialog box
+        dlg.showModal();
     }
 }
 
